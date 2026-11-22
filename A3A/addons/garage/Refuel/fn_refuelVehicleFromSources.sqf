@@ -1,7 +1,7 @@
 #include "defines.inc"
 FIX_LINE_NUMBERS()
 
-params [["_vehicle", objNull, [objNull]]];
+params [["_vehicle", objNull, [objNull]], ["_vehUID", -1, [0]]];
 if (isNull _vehicle) exitWith {false};
 if (!isServer) exitWith {false};
 
@@ -30,6 +30,20 @@ if (_maxFuel == 0) then {
 if (_maxFuel == 0) exitWith {false};
 
 private _fuel = fuel _vehicle;
+if (_vehUID != -1) then {
+    // Garage placement: the vehicle is created on the placing client, so its fuel may not have replicated to the server yet.
+    // Use the fuel stored in the garage entry (the value the client restored), if the sender has that entry checked out.
+    private _sender = remoteExecutedOwner;
+    private _senderUID = "";
+    { if (owner _x == _sender) exitWith { _senderUID = getPlayerUID _x } } forEach allPlayers;
+
+    private "_vehData";
+    { _vehData = _x get _vehUID; if (!isNil "_vehData") exitWith {}; } forEach HR_GRG_Vehicles;
+    if (!isNil "_vehData" && { _senderUID != "" && { (_vehData#3) isEqualTo _senderUID && { (_vehData#1) isEqualTo typeOf _vehicle } } }) then {
+        _fuel = _vehData#4#0; //vehicle data >> statePreservation data >> Fuel data
+        if (_fuel isEqualType []) then { _fuel = _fuel#0 }; //[fuel, fuel cargo, ace fuel cargo]
+    };
+};
 private _missingFuel = 1 - _fuel;
 if (_missingFuel == 0) exitWith {true};
 

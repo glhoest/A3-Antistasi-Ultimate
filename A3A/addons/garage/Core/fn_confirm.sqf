@@ -22,10 +22,10 @@ if (_vehUID isEqualTo -1) exitWith {["STR_HR_GRG_Feedback_confirm_NullSelection"
 
 // Placement callback function
 private _fnc_placed = {
-    params ["_veh"];
+    params ["_veh", "_vehUID"];
 
     if (!isNull _veh && !HR_GRG_ServiceDisabled_Refuel) then {
-        [_veh] remoteExecCall ["HR_GRG_fnc_refuelVehicleFromSources", 2];
+        [_veh, _vehUID] remoteExecCall ["HR_GRG_fnc_refuelVehicleFromSources", 2];
     };
     _veh call HR_GRG_fnc_vehInit;
 
@@ -44,7 +44,7 @@ HR_GRG_Mounts apply {
     _class
     , _fnc_placed
     , {[false]}
-    , []
+    , [_vehUID]
     , HR_GRG_Mounts
     , if (
             HR_GRG_Pylons_Enabled //Pylon editing enabled
